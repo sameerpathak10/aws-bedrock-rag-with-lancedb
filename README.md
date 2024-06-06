@@ -67,4 +67,6 @@ Once you've emptied the bucket, issue the following
 sam delete
 ```
 
-Reference: https://community.aws/content/2d1B5srtVqbVYnlm9ixKNJf4p1M/serverless-retrieval-augmented-generation-rag-on-aws 
+Reference: 
+-   https://community.aws/content/2d1B5srtVqbVYnlm9ixKNJf4p1M/serverless-retrieval-augmented-generation-rag-on-aws 
+-   https://lancedb.github.io/lancedb/ 
