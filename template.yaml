@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: |
+  node18.x
+  Sample SAM Template for streaming-rag-on-lambda
+Parameters:
+  FunctionURLAuthType:
+    Default: AWS_IAM
+    Description: What type of auth the Lambda should use for the FunctionURL
+    Type: String
+    AllowedValues: [AWS_IAM, NONE]
+Resources:
+  DocumentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-${AWS::Region}-${AWS::AccountId}
+
+  DocumentProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Timeout: 900
+      MemorySize: 512
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          s3BucketName: !Sub ${AWS::StackName}-${AWS::Region}-${AWS::AccountId}
+          region: !Ref AWS::Region
+          lanceDbTable: lancedb_table
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:*
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:List*
+              Resource:
+                - !Sub arn:aws:s3:::${AWS::StackName}-${AWS::Region}-${AWS::AccountId}/*
+                - !Sub arn:aws:s3:::${AWS::StackName}-${AWS::Region}-${AWS::AccountId}
+      Events:
+        S3DocumentUpload:
+          Type: S3
+          Properties:
+            Bucket: !Ref DocumentBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: documents/
+    Metadata:
+      DockerTag: nodejs18.x-v1
+      DockerContext: ./document-processor
+      Dockerfile: Dockerfile
+
+  StreamingRAGFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      #Handler: client.handler
+      #Runtime: nodejs18.x
+      #CodeUri: /.
+      Timeout: 900
+      MemorySize: 512
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          s3BucketName: !Sub ${AWS::StackName}-${AWS::Region}-${AWS::AccountId}
+          region: !Ref AWS::Region
+          lanceDbTable: lancedb_table
+      FunctionUrlConfig:
+        AuthType: !Ref FunctionURLAuthType
+        Cors:
+          AllowCredentials: true
+          AllowHeaders:
+            - x-amz-security-token
+            - x-amz-date
+            - x-amz-content-sha256
+            - referer
+            - content-type
+            - accept
+            - authorization
+          AllowMethods:
+            - "*"
+          AllowOrigins:
+            - "*"
+          MaxAge: 0
+        InvokeMode: RESPONSE_STREAM
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "bedrock:InvokeModel"
+                - "bedrock:InvokeModelWithResponseStream"
+              Resource:
+                - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-*"
+                - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.titan-*"
+                - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/mistral.mixtral-*"
+            - Effect: Allow
+              Action: s3:GetObject
+              Resource: !Sub arn:aws:s3:::${DocumentBucket}/*
+            - Effect: Allow
+              Action: s3:ListBucket
+              Resource: !Sub arn:aws:s3:::${DocumentBucket}
+    Metadata:
+      DockerTag: nodejs18.x-v1
+      DockerContext: ./streaming-rag-client
+      Dockerfile: Dockerfile
+
+Outputs:
+  DocumentProcessorFunction:
+    Description: Lambda Function ARN
+    Value: !GetAtt DocumentProcessorFunction.Arn
+  DocumentProcessorFunctionIamRole:
+    Description: Implicit IAM Role created for Document Processor function
+    Value: !GetAtt DocumentProcessorFunctionRole.Arn
+  StreamingRAGFunction:
+    Description: "Streaming Lambda Function ARN"
+    Value: !GetAtt StreamingRAGFunction.Arn
+  StreamingRAGFunctionURL:
+    Description: "Function URL for Streaming"
+    Value: !GetAtt StreamingRAGFunctionUrl.FunctionUrl
+  StreamingRAGFunctionIamRole:
+    Description: "Implicit IAM Role created for Streaming function"
+    Value: !GetAtt StreamingRAGFunctionRole.Arn
+  DocumentBucketName:
+    Description:
+      S3 bucket where LanceDB sources embeddings. Check this repository
+      README for instructions on how to import your documents
+    Value: !Ref DocumentBucket
+  DocumentTableName:
+    Description: Name of the Document Table in LanceDB
+    Value: doc_table
+  DeploymentRegion:
+    Description: Where this stack is deployed
+    Value: !Sub ${AWS::Region}

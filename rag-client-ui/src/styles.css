@@ -1,0 +1,148 @@
+/* 
+Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+SPDX-License-Identifier: MIT-0 
+*/
+.App {
+  font-family: sans-serif;
+  text-align: center;  
+}
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;  /* Change this to your preferred font family */
+}
+
+/* Main Container */
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid #ccc;
+  margin: 10px;
+}
+
+/* Prompt Section */
+.prompt {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.label {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+#searchQuery {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  flex-grow: 1; /* Allow the input to fill available space */
+}
+
+.submitBtn {
+  padding: 10px 20px;
+  background-color: #4CAF50; /* Green color */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.submitBtn:hover {
+  background-color: #3e8e41; /* Darker green on hover */
+}
+
+/* Response Section */
+.response {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  width: 80%;
+}
+
+.response p {
+  margin: 0;
+}
+
+.response b {
+  margin-bottom: 5px;
+  display: block;
+}
+h1{
+  margin-bottom: 100px;
+  text-decoration: underline;
+}
+
+.file-upload {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem; /* Add some space below the component */
+}
+
+.file-upload input[type="file"] {
+  display: none; /* Hide the default file input element */
+  background-color: #4CAF50; 
+  margin: 10px;
+  padding: 5px;
+  border: 1px solid black;
+  border-radius: 4px;
+  font-size: 16px;
+  flex-grow: 1; /* Allow the input to fill available space */
+}
+input[type="file"]::file-selector-button {
+  background-color: #4CAF50; /* Set button background color */
+  color: #fff; /* Set button text color */
+  border: none; /* Remove default border */
+  border-radius: 4px; /* Add rounded corners */
+  padding: 0.5rem 1rem; /* Adjust padding */
+  cursor: pointer; /* Indicate clickable element */
+}
+
+.file-upload button {
+  padding: 10px 20px;
+  background-color: #4CAF50; /* Green color */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 10px;
+}
+
+.file-upload button:hover {
+  background-color:  #4CAF50; /* Change background color on hover */
+}
+
+.file-upload p {
+  margin-left: 1rem; /* Add some space to the left of the status message */
+  font-weight: bold;
+}
+
+.file-upload.success p {
+  color: green; /* Change color for success message */
+}
+
+.file-upload.error p {
+  color: red; /* Change color for error message */
+}
+
+.upload {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  width: 100%;
+  margin: 10px;
+  margin-bottom: 50px;
+}
+
+
+#fileInput {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  flex-grow: 1; /* Allow the input to fill available space */
+}
