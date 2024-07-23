@@ -1,5 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
+
+// Import required modules
 import { LanceDB } from "langchain/vectorstores/lancedb";
 import { BedrockEmbeddings } from "langchain/embeddings/bedrock";
 import { connect } from "vectordb"; // LanceDB
@@ -12,11 +14,14 @@ import {
 } from "langchain/schema/runnable";
 import { formatDocumentsAsString } from "langchain/util/document";
 
+// Fetch environment variables
 const lanceDbSrc = process.env.s3BucketName;
 const lanceDbTable = process.env.lanceDbTable;
 const awsRegion = process.env.region;
 
-const runChain = async ( prompt, responseStream) => {
+// Main function to run the chain
+const runChain = async (prompt, responseStream) => {
+  // Connect to the LanceDB database
   const db = await connect(`s3://${lanceDbSrc}/embeddings`);
   console.log("db connection successful", db);
   const table = await db.openTable(lanceDbTable);
@@ -25,13 +30,20 @@ const runChain = async ( prompt, responseStream) => {
   console.log("prompt", prompt);
   console.log("streamingFormat", streamingFormat);
 
-  const embeddings = new BedrockEmbeddings({ region: awsRegion });
+  // Initialize embeddings and vector store
+  //const embeddings = new BedrockEmbeddings({ region: awsRegion, });
+
+  const embeddings = new BedrockEmbeddings({
+    region: awsRegion,
+    model: "amazon.titan-embed-text-v1",
+  });
   console.log("embeddings", embeddings);
   const vectorStore = new LanceDB(embeddings, { table });
   console.log("vectorStore", vectorStore);
   const retriever = vectorStore.asRetriever();
   console.log("retriever", retriever);
 
+  // Define the prompt template
   const promptQuery = PromptTemplate.fromTemplate(
     `Answer the following question based only on the following context:
         {context}
@@ -39,6 +51,7 @@ const runChain = async ( prompt, responseStream) => {
         Question: {question}`
   );
 
+  // Initialize the language model
   const llmModel = new ChatBedrock({
     model: "anthropic.claude-v2",
     region: awsRegion,
@@ -46,6 +59,7 @@ const runChain = async ( prompt, responseStream) => {
     maxTokens: 1000,
   });
 
+  // Define the chain sequence
   const chain = RunnableSequence.from([
     {
       context: retriever.pipe(formatDocumentsAsString),
@@ -55,10 +69,11 @@ const runChain = async ( prompt, responseStream) => {
     llmModel,
     new StringOutputParser(),
   ]);
-
+  console.log("chain", chain);
+  
+  // Stream the response
   const stream = await chain.stream(prompt);
   for await (const chunk of stream) {
-    //console.log(chunk);
     switch (streamingFormat) {
       case "fetch-event-source":
         responseStream.write(`event: message\n`);
@@ -71,22 +86,24 @@ const runChain = async ( prompt, responseStream) => {
   }
   responseStream.end();
   console.log("stream ended.");
-  //return responseStream;
 };
 
+// Helper function to parse base64 encoded messages
 function parseBase64(message) {
   return JSON.parse(Buffer.from(message, "base64").toString("utf-8"));
 }
 
+// AWS Lambda handler function
 export const handler = awslambda.streamifyResponse(
   async (event, responseStream, _context) => {
     console.log("Event", JSON.stringify(event));
-    let promptObj = event.isBase64Encoded ? parseBase64(event.body) : JSON.parse(event.body);
-    //console.log('Body', body);
+    let promptObj = event.isBase64Encoded
+      ? parseBase64(event.body)
+      : JSON.parse(event.body);
     console.log("Response Stream", responseStream);
     console.log("Calling runChain");
     await runChain(promptObj.prompt, responseStream);
-    console.log(JSON.stringify({ "status": "complete" }));
+    console.log(JSON.stringify({ status: "complete" }));
   }
 );
 

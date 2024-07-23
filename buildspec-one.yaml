@@ -20,17 +20,22 @@ phases:
       # This phase is optional and can be removed if pre_build covers everything
       # commands:
       #   - (commands from pre_build can be repeated here)
-      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG # Optional for ECR push
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG
+        $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG # Optional for ECR push
 
   post_build:
     commands:
       - echo Pushing Docker image to ECR... # Optional if not using ECR
       - echo $AWS_DEFAULT_REGION # Optional for logging
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com # Optional for ECR login (requires IAM role with access)
-      - docker push $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG # Optional for ECR push
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login
+        --username AWS --password-stdin
+        $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com # Optional for ECR login (requires IAM role with access)
+      - docker push
+        $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG # Optional for ECR push
       - echo Build completed on `date`
-      - aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --image-uri $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
-
-#artifacts:
- # files:
+      - aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME
+        --image-uri
+        $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+  #artifacts:
+  # files:
   #  - Dockerfile # Include Dockerfile in artifacts (optional)

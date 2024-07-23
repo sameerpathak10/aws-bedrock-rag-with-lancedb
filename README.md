@@ -2,7 +2,7 @@
 
 This is an example of serverless document ingestion pipeline that automates the calculation of embeddings, so that they can be used in the context of a Retrieval Augmented Generation application. This sample makes use of Amazon Bedrock to provide access to Amazon Titan Embedding model and LanceDB to store and provide access to the calculated vectors.
 
-![alt text](/documents/RAG-With-LanceDB.png)
+![alt text](/documents/LanceDB-Final.drawio.png)
 
 ## Wait, what do we mean with embedding?
 
@@ -67,6 +67,4 @@ Once you've emptied the bucket, issue the following
 sam delete
 ```
 
-Reference: 
--   https://community.aws/content/2d1B5srtVqbVYnlm9ixKNJf4p1M/serverless-retrieval-augmented-generation-rag-on-aws 
--   https://lancedb.github.io/lancedb/ 
+Reference: https://community.aws/content/2d1B5srtVqbVYnlm9ixKNJf4p1M/serverless-retrieval-augmented-generation-rag-on-aws 

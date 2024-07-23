@@ -1,0 +1,32 @@
+
+version: 0.0
+
+# Define the file as a Lambda deployment application
+# (other options include ECS and server instances)
+# More info: https://docs.aws.amazon.com/codedeploy/latest/userguide/appspec-ref-directives.html#appspec-ref-path
+Application: Lambda
+
+# Specify the Lambda function to update
+ServiceRole: arn:aws:iam::<your_aws_account_id>:role/service-role-name  # Replace with your IAM role ARN
+
+# Define hooks for pre- and post-deployment actions (optional)
+# More info: https://docs.aws.amazon.com/codedeploy/latest/userguide/appspec-ref-hooks.html
+Hooks:
+  BeforeAllowTraffic:
+    - Location: scripts/pre_deploy.sh  # Replace with your pre-deployment script path (optional)
+      Timeout: 300  # Optional timeout in seconds for the script
+      RunAs: root  # Optional user to run the script (default: user deploying the app)
+  AfterAllowingTraffic:
+    - Location: scripts/post_deploy.sh  # Replace with your post-deployment script path (optional)
+      Timeout: 300  # Optional timeout in seconds for the script
+      RunAs: root  # Optional user to run the script (default: user deploying the app)
+
+# Define the deployment configuration for the Lambda function
+Resources:
+  - Type: AWS::Lambda::Function
+    # Replace with your Lambda function name
+    Name: <your_lambda_function_name>
+    Properties:
+      # Update Lambda function code with the image URI
+      CodeUri: 
+        ImageUri: <your_aws_account_id>.dkr.ecr.<your_aws_region>.amazonaws.com/<your_ecr_repository_name>:<image_tag>  # Replace with your ECR image details
